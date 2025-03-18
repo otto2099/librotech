@@ -7,5 +7,6 @@ import 'package:librotech/src/features/domain/entities/book_pagination_entity.da
 abstract class BookRepository {
   Future<Either<Failure, BookPaginationEntity>> searchBooks(SearchDTO params);
   Future<Either<Failure, BookPaginationEntity>> getNewBooks();
+  Future<Either<Failure, List<String>>> getSearchHistory();
   Future<Either<Failure, BookDetailsEntity>> getBookDetails(String id);
 }

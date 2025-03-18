@@ -10,6 +10,7 @@ class HomeBinding implements Bindings {
         getBookDetailsUseCase: sl(),
         getNewBooksUseCase: sl(),
         searchBooksUseCase: sl(),
+        getSearchHistoryUseCase: sl(),
       ),
     );
   }

@@ -16,11 +16,9 @@ class MockGetBookDetailsUseCase extends Mock implements GetBookDetailsUseCase {}
 
 void main() {
   late MockBookDetailController mockController;
-  late MockGetBookDetailsUseCase mockUseCase;
 
   setUp(() {
     mockController = MockBookDetailController();
-    mockUseCase = MockGetBookDetailsUseCase();
     Get.put<BookDetailController>(mockController);
     Get.parameters = {'id': '1234567890123'};
     const testBook = BookDetailsEntity(

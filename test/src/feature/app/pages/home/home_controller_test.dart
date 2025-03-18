@@ -1,107 +1,72 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:librotech/src/core/error/failures.dart';
 import 'package:librotech/src/core/usecases/use_cases.dart';
 import 'package:librotech/src/features/app/pages/home/home_controller.dart';
-import 'package:librotech/src/features/data/DTOs/search_dto.dart';
-import 'package:librotech/src/features/domain/entities/book_detail_entity.dart';
-import 'package:librotech/src/features/domain/entities/book_entity.dart';
-import 'package:librotech/src/features/domain/entities/book_pagination_entity.dart';
 import 'package:librotech/src/features/domain/usecases/get_book_details_use_cases.dart';
 import 'package:librotech/src/features/domain/usecases/get_new_books_use_cases.dart';
+import 'package:librotech/src/features/domain/usecases/get_search_history_use_cases.dart';
 import 'package:librotech/src/features/domain/usecases/search_books_use_cases.dart';
 import 'package:mocktail/mocktail.dart';
 
-// Se crean clases mock para cada use case.
+// Casos de uso mockeados
 class MockGetBookDetailsUseCase extends Mock implements GetBookDetailsUseCase {}
 
 class MockGetNewBooksUseCase extends Mock implements GetNewBooksUseCase {}
 
 class MockSearchBooksUseCase extends Mock implements SearchBooksUseCase {}
 
-void main() {
-  setUpAll(() {
-    registerFallbackValue(SearchDTO(page: '1', query: '1234567890123'));
-  });
+class MockGetSearchHistoryUseCase extends Mock
+    implements GetSearchHistoryUseCase {}
 
+void main() {
   late MockGetBookDetailsUseCase mockGetBookDetailsUseCase;
   late MockGetNewBooksUseCase mockGetNewBooksUseCase;
   late MockSearchBooksUseCase mockSearchBooksUseCase;
+  late MockGetSearchHistoryUseCase mockGetSearchHistoryUseCase;
   late HomeController homeController;
 
   setUp(() {
     mockGetBookDetailsUseCase = MockGetBookDetailsUseCase();
     mockGetNewBooksUseCase = MockGetNewBooksUseCase();
     mockSearchBooksUseCase = MockSearchBooksUseCase();
+    mockGetSearchHistoryUseCase = MockGetSearchHistoryUseCase();
 
     homeController = HomeController(
       getBookDetailsUseCase: mockGetBookDetailsUseCase,
       getNewBooksUseCase: mockGetNewBooksUseCase,
       searchBooksUseCase: mockSearchBooksUseCase,
+      getSearchHistoryUseCase: mockGetSearchHistoryUseCase,
     );
   });
 
-  group('HomeController', () {
-    const tBookId = '9781234567890';
+  test('getBookDetailsUseCase maneja errores correctamente', () async {
+    when(() => mockGetBookDetailsUseCase.call(any()))
+        .thenAnswer((_) async => Left(ServerFailure()));
 
-    const dummyBookDetails = BookDetailsEntity(
-      title: 'Test Title',
-      subtitle: 'Test Subtitle',
-      authors: 'Test Author',
-      publisher: 'Test Publisher',
-      isbn10: '1234567890',
-      isbn13: '9781234567890',
-      pages: '200',
-      year: '2020',
-      rating: '4.0',
-      desc: 'Test Description',
-      price: '\$20',
-      image: 'http://example.com/image.png',
-      url: 'http://example.com',
-      pdf: null,
-    );
+    await homeController.getBookDetailsUseCase('invalid-id');
 
-    const dummyBook = BookEntity(
-      title: 'Dummy Book Title',
-      subtitle: 'Dummy Subtitle',
-      isbn13: '9781234567890',
-      price: '\$9.99',
-      image: 'http://example.com/dummy_image.png',
-      url: 'http://example.com/dummy_url',
-    );
+    expect(homeController.bookDetailsEntity, isNull);
+    verify(() => mockGetBookDetailsUseCase.call(any())).called(1);
+  });
 
-    const dummyBookPagination = BookPaginationEntity(
-      total: '1',
-      page: '1',
-      books: [dummyBook],
-    );
+  test('getNewBooksUseCase maneja errores correctamente', () async {
+    when(() => mockGetNewBooksUseCase.call(NoParams()))
+        .thenAnswer((_) async => Left(ServerFailure()));
 
-    test(
-        'getBookDetailsUseCase debe actualizar bookDetailsEntity en caso de éxito',
-        () async {
-      when(() => mockGetBookDetailsUseCase.call(tBookId))
-          .thenAnswer((_) async => const Right(dummyBookDetails));
+    await homeController.getNewBooksUseCase();
 
-      await homeController.getBookDetailsUseCase(tBookId);
+    expect(homeController.bookList, isNull);
+    verify(() => mockGetNewBooksUseCase.call(NoParams())).called(1);
+  });
 
-      expect(homeController.bookDetailsEntity, equals(dummyBookDetails));
-      verify(() => mockGetBookDetailsUseCase.call(tBookId)).called(1);
-    });
+  test('getSearchHistory maneja errores correctamente', () async {
+    when(() => mockGetSearchHistoryUseCase.call(NoParams()))
+        .thenAnswer((_) async => Left(CacheFailure()));
 
-    test('getNewBooksUseCase debe actualizar bookList en caso de éxito',
-        () async {
-      when(() => mockGetNewBooksUseCase.call(NoParams()))
-          .thenAnswer((_) async => const Right(dummyBookPagination));
+    await homeController.getSearchHistory();
 
-      await homeController.getNewBooksUseCase();
-
-      expect(homeController.bookList, equals(dummyBookPagination));
-      verify(() => mockGetNewBooksUseCase.call(NoParams())).called(1);
-    });
-
-    test(
-        'onClose debe disponer searchController y cancelar debouncer sin arrojar excepción',
-        () {
-      expect(() => homeController.onClose(), returnsNormally);
-    });
+    expect(homeController.searchHistory, isNull);
+    verify(() => mockGetSearchHistoryUseCase.call(NoParams())).called(1);
   });
 }

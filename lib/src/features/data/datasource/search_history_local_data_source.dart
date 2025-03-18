@@ -7,30 +7,33 @@ abstract class SearchHistoryLocalDataSource {
   Future<void> clearSearchHistory();
 }
 
-class SearchHistoryLocalDataSourceImpl extends SearchHistoryLocalDataSource {
-  static const String _boxName = Collections.searchHistory;
+class SearchHistoryLocalDataSourceImpl implements SearchHistoryLocalDataSource {
   @override
   Future<void> addSearchTerm(String searchTerm) async {
-    var box = Hive.box<String>(_boxName);
-    final existingIndex = box.values.toList().indexOf(searchTerm);
+    var searchBox = Hive.box(Collections.searchHistory);
+    if (searchTerm.trim().isEmpty) return;
+
+    final existingIndex = searchBox.values.toList().indexOf(searchTerm);
     if (existingIndex != -1) {
-      await box.deleteAt(existingIndex);
+      await searchBox.deleteAt(existingIndex);
     }
-    await box.add(searchTerm);
-    while (box.length > 5) {
-      await box.deleteAt(0);
+
+    await searchBox.add(searchTerm);
+    while (searchBox.length > 5) {
+      await searchBox.deleteAt(0);
     }
   }
 
   @override
   Future<void> clearSearchHistory() async {
-    var box = Hive.box<String>(_boxName);
+    var box = Hive.box<String>(Collections.searchHistory);
     box.clear();
   }
 
   @override
   Future<List<String>> getSearchHistory() async {
-    var box = Hive.box<String>(_boxName);
-    return box.values.toList().reversed.toList();
+    var box = Hive.box(Collections.searchHistory);
+    List<String> values = box.values.cast<String>().toList().reversed.toList();
+    return values;
   }
 }

@@ -36,6 +36,19 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 CustomTextFieldWithTitle(
+                  sufixIcon: IconButton(
+                    icon: const Icon(
+                      Icons.history_sharp,
+                      color: Colors.white,
+                    ),
+                    onPressed: () async {
+                      await controller.getSearchHistory();
+                      controller.showSearchHistoryDialog(
+                        context,
+                        (String value) {},
+                      );
+                    },
+                  ),
                   width: MediaQuery.of(context).size.width,
                   onChanged: (value) {
                     if (value.isNotEmpty) {

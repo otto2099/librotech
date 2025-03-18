@@ -4,10 +4,12 @@ import 'package:librotech/src/features/app/pages/book_detail/book_detail_control
 import 'package:librotech/src/features/app/pages/home/home_controller.dart';
 
 import 'package:librotech/src/features/data/datasource/book_remote_data_source.dart';
+import 'package:librotech/src/features/data/datasource/search_history_local_data_source.dart';
 import 'package:librotech/src/features/data/repositories/book_repository_impl.dart';
 import 'package:librotech/src/features/domain/repositories/book_repository.dart';
 import 'package:librotech/src/features/domain/usecases/get_book_details_use_cases.dart';
 import 'package:librotech/src/features/domain/usecases/get_new_books_use_cases.dart';
+import 'package:librotech/src/features/domain/usecases/get_search_history_use_cases.dart';
 import 'package:librotech/src/features/domain/usecases/search_books_use_cases.dart';
 
 import 'src/core/database/collections_name.dart';
@@ -30,14 +32,23 @@ Future<void> init() async {
 
   sl.registerLazySingleton(() => SearchBooksUseCase(sl()));
 
+  sl.registerLazySingleton(() => GetSearchHistoryUseCase(sl()));
+
   sl.registerLazySingleton<BookRepository>(
     () => BookRepositoryImpl(
       remoteDataSource: sl(),
+      localDataSource: sl(),
     ),
   );
 
+  /*-------------------------------
+    DATA SOURCE
+  -------------------------------*/
   sl.registerLazySingleton<BookRemoteDataSource>(
       () => BookRemoteDataSourceImpl());
+
+  sl.registerLazySingleton<SearchHistoryLocalDataSource>(
+      () => SearchHistoryLocalDataSourceImpl());
 
   // External BD
   await Hive.initFlutter();
